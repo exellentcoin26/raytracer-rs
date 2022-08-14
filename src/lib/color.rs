@@ -1,19 +1,18 @@
+use super::Vec3;
 use std::{
     fmt::Display,
     ops::{Add, AddAssign, Mul, MulAssign},
 };
 
+#[derive(Debug, PartialEq, Clone, Copy, Default)]
 pub struct Color(f64, f64, f64);
 
 impl Color {
     pub fn new(red: f64, green: f64, blue: f64) -> Self {
         assert!(
-            red >= 0f64
-                && red <= 1f64
-                && green >= 0f64
-                && green <= 1f64
-                && blue >= 0f64
-                && blue <= 1f64
+            (0f64..=1f64).contains(&red)
+                && (0f64..=1f64).contains(&green)
+                && (0f64..=1f64).contains(&blue)
         );
         Self(red, green, blue)
     }
@@ -34,12 +33,9 @@ impl Color {
     }
 
     pub fn valid(&self) -> bool {
-        self.0 >= 0f64
-            && self.0 <= 1f64
-            && self.1 >= 0f64
-            && self.1 <= 1f64
-            && self.2 >= 0f64
-            && self.2 <= 1f64
+        (0f64..=1f64).contains(&self.0)
+            && (0f64..=1f64).contains(&self.1)
+            && (0f64..=1f64).contains(&self.2)
     }
 
     pub fn write_color(&self) -> String {
@@ -92,6 +88,21 @@ impl MulAssign<f64> for Color {
         self.1 *= rhs;
         self.2 *= rhs;
         assert!(self.valid());
+    }
+}
+
+impl TryFrom<Vec3> for Color {
+    type Error = String;
+
+    fn try_from(value: Vec3) -> Result<Self, Self::Error> {
+        if !((0f64..=1f64).contains(&value.x())
+            && (0f64..=1f64).contains(&value.y())
+            && (0f64..=1f64).contains(&value.z()))
+        {
+            return Err("could not convert `Vec3` to `Color`: `x`, `y` or `z` values are not contained in the `(0..=1)` range".to_string());
+        }
+
+        Ok(Self(value.x(), value.y(), value.z()))
     }
 }
 
