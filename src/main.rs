@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::lib::{
-    hittables::Sphere, traits::Hittable, Color, Point3, Ray, Vec3,
+    hittables::HittableList, hittables::Sphere, traits::Hittable, Color, Point3, Ray, Vec3,
 };
 
 mod lib;
@@ -13,6 +13,16 @@ fn main() {
     let aspect_ratio = 16_f64 / 9f64;
     let image_width = 10_000;
     let image_height = (image_width as f64 / aspect_ratio).round() as usize;
+
+    // ===================
+    //       World
+    // ===================
+    let mut world = HittableList::default();
+    world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5_f64)));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, -100.5_f64, -1.0),
+        100.0,
+    )));
 
     // ===================
     //       Camera
@@ -51,7 +61,7 @@ fn main() {
                 origin,
                 lower_left_corner + u * horizontal + v * vertical - origin,
             );
-            let color = ray_color(&r);
+            let color = ray_color(&r, &world);
             println!("{}", color.write_color());
         }
     }
@@ -60,10 +70,12 @@ fn main() {
     eprintln!("Done");
 }
 
-fn ray_color(r: &Ray) -> Color {
+fn ray_color<T: Hittable>(r: &Ray, world: &T) -> Color {
     // spawn a single sphere for testing
-    if hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Color::new(1.0, 0.0, 0.0);
+    if let Some(hitrecord) = world.hit(r, 0.0, std::f64::INFINITY) {
+        return (0.5_f64 * (hitrecord.normal() + Vec3::new(1.0, 1.0, 1.0)))
+            .try_into()
+            .unwrap();
     }
 
     let unit_dir = r.direction().unit_vector();
