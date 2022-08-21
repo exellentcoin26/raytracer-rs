@@ -1,6 +1,9 @@
+use super::{utils, Color};
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{
+        Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Range, Sub, SubAssign,
+    },
 };
 
 pub type Point3 = Vec3;
@@ -11,6 +14,33 @@ pub struct Vec3(f64, f64, f64);
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self(x, y, z)
+    }
+
+    pub fn random() -> Self {
+        Self(
+            utils::random_double(),
+            utils::random_double(),
+            utils::random_double(),
+        )
+    }
+
+    pub fn random_range(range: Range<f64>) -> Self {
+        Self(
+            utils::random_double_range(range.clone()),
+            utils::random_double_range(range.clone()),
+            utils::random_double_range(range),
+        )
+    }
+
+    /// Returns a random Point within a unit sphere using a rejection method. Pick a point in a
+    /// cube and return if that point is in the sphere, otherwise retry.
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Self::random_range(-1.0..1.0);
+            if p.length_squared() < 1.0 {
+                break p;
+            }
+        }
     }
 
     pub fn x(&self) -> f64 {
@@ -89,7 +119,7 @@ impl IndexMut<u8> for Vec3 {
 }
 
 impl Add for Vec3 {
-    type Output = Vec3;
+    type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
@@ -121,7 +151,7 @@ impl SubAssign for Vec3 {
 }
 
 impl Mul<f64> for Vec3 {
-    type Output = Vec3;
+    type Output = Self;
 
     fn mul(self, rhs: f64) -> Self::Output {
         Self(self.0 * rhs, self.1 * rhs, self.2 * rhs)
@@ -189,6 +219,12 @@ impl DivAssign for Vec3 {
         self.0 /= rhs.0;
         self.1 /= rhs.1;
         self.2 /= rhs.2;
+    }
+}
+
+impl From<Color> for Vec3 {
+    fn from(color: Color) -> Self {
+        Self(color.red(), color.green(), color.blue())
     }
 }
 

@@ -1,6 +1,8 @@
 #![allow(dead_code)]
+
 use crate::lib::{
-    hittables::HittableList, hittables::Sphere, traits::Hittable, Color, Point3, Ray, Vec3,
+    hittables::HittableList, hittables::Sphere, traits::Hittable, utils, Camera, Color, Point3,
+    Ray, Vec3,
 };
 
 mod lib;
@@ -10,33 +12,25 @@ fn main() {
     //        Image
     // ===================
 
-    let aspect_ratio = 16_f64 / 9f64;
-    let image_width = 10_000;
+    let aspect_ratio = 16_f64 / 9_f64;
+    let image_width = 2000_usize;
     let image_height = (image_width as f64 / aspect_ratio).round() as usize;
+    let samples_per_pixel = 5_usize;
+    let max_ray_depth = 50_usize;
 
     // ===================
     //       World
     // ===================
+
     let mut world = HittableList::default();
-    world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5_f64)));
-    world.add(Box::new(Sphere::new(
-        Point3::new(0.0, -100.5_f64, -1.0),
-        100.0,
-    )));
+    world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     // ===================
     //       Camera
     // ===================
 
-    let viewport_height = 2_f64;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1_f64;
-
-    let origin = Point3::new(0.0, 0.0, 0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+    let cam = Camera::default();
 
     // ===================
     //       Render
@@ -54,14 +48,20 @@ fn main() {
         eprintln!("Scanlines remaining: {}\x1B[1A", j);
 
         for i in 0..image_width {
-            let u = i as f64 / (image_width - 1) as f64;
-            let v = j as f64 / (image_height - 1) as f64;
+            // use `Vec3` because the `Color` invariants cannot be guaranteed before rescaling
+            let mut color = Vec3::default();
 
-            let r = Ray::new(
-                origin,
-                lower_left_corner + u * horizontal + v * vertical - origin,
-            );
-            let color = ray_color(&r, &world);
+            for _ in 0..samples_per_pixel {
+                let u = (i as f64 + utils::random_double()) / (image_width - 1) as f64;
+                let v = (j as f64 + utils::random_double()) / (image_height - 1) as f64;
+
+                let r = cam.get_ray(u, v);
+                color += ray_color(&r, &world, max_ray_depth).into(); // because `color` is a `Vec3` for now
+            }
+
+            let color: Color = (color / samples_per_pixel as f64)
+                .try_into()
+                .expect("could not convert `Vec3` to `Color`");
             println!("{}", color.write_color());
         }
     }
@@ -70,12 +70,16 @@ fn main() {
     eprintln!("Done");
 }
 
-fn ray_color<T: Hittable>(r: &Ray, world: &T) -> Color {
+fn ray_color<T: Hittable>(r: &Ray, world: &T, depth: usize) -> Color {
+    // check if depth limit is reached
+    if depth <= 0 {
+        return Color::new(0.0, 0.0, 0.0);
+    }
+
     // spawn a single sphere for testing
-    if let Some(hitrecord) = world.hit(r, 0.0, std::f64::INFINITY) {
-        return (0.5_f64 * (hitrecord.normal() + Vec3::new(1.0, 1.0, 1.0)))
-            .try_into()
-            .unwrap();
+    if let Some(rec) = world.hit(r, 0.0, std::f64::INFINITY) {
+        let target = rec.get_inpact_point() + rec.normal() + Vec3::random_in_unit_sphere();
+        return 0.5 * ray_color(&Ray::new(rec.get_inpact_point(), target), world, depth - 1);
     }
 
     let unit_dir = r.direction().unit_vector();

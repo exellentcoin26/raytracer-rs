@@ -68,7 +68,7 @@ impl Hittable for HittableList {
         let mut closest = t_max;
         let mut rec = None;
 
-        for object in self.objects.iter() {
+        for object in &self.objects {
             if let Some(hitrecord) = object.hit(r, t_min, closest) {
                 closest = hitrecord.get_t();
                 rec = Some(hitrecord);

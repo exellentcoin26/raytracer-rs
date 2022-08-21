@@ -50,7 +50,7 @@ impl Color {
 }
 
 impl Add for Color {
-    type Output = Color;
+    type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self::new(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
@@ -62,12 +62,12 @@ impl AddAssign for Color {
         self.0 += rhs.0;
         self.1 += rhs.1;
         self.2 += rhs.2;
-        assert!(self.valid())
+        assert!(self.valid());
     }
 }
 
 impl Mul<f64> for Color {
-    type Output = Color;
+    type Output = Self;
 
     fn mul(self, rhs: f64) -> Self::Output {
         Self::new(self.0 * rhs, self.1 * rhs, self.2 * rhs)
