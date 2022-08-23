@@ -1,9 +1,13 @@
 #![allow(dead_code)]
 
 use crate::lib::{
-    hittables::HittableList, hittables::Sphere, traits::Hittable, utils, Camera, Color, Point3,
-    Ray, Vec3,
+    hittables::HittableList,
+    hittables::Sphere,
+    materials::{Lambertian, Metal},
+    traits::Hittable,
+    utils, Camera, Color, Point3, Ray, Vec3,
 };
+use std::rc::Rc;
 
 mod lib;
 
@@ -23,8 +27,32 @@ fn main() {
     // ===================
 
     let mut world = HittableList::default();
-    world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
-    world.add(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
+
+    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8)));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2)));
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, -100.5, -1.0),
+        100.0,
+        material_ground.clone(),
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
+        material_center.clone(),
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.5,
+        material_left.clone(),
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(1.0, 0.0, -1.0),
+        0.5,
+        material_right.clone(),
+    )));
 
     // ===================
     //       Camera
@@ -71,26 +99,16 @@ fn main() {
 
 fn ray_color<T: Hittable>(r: &Ray, world: &T, depth: usize) -> Color {
     // check if depth limit is reached
-    if depth <= 0 {
+    if depth == 0 {
         return Color::new(0.0, 0.0, 0.0);
     }
 
     // fix the `shadow acne` problem by ignoring bounces that bounce from themselves
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        // true Lambertian diffuse reflection
-        let target = rec.get_inpact_point() + rec.normal() + Vec3::random_unit_vector();
-
-        /*
-        // hemespherical scattering
-        let target = rec.get_inpact_point() + Vec3::random_in_hemisphere(&rec.normal());
-        */
-
-        return 0.5
-            * ray_color(
-                &Ray::new(rec.get_inpact_point(), target - rec.get_inpact_point()),
-                world,
-                depth - 1,
-            );
+        if let Some((attenuation, scattered)) = rec.mat().scatter(r, &rec) {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        }
+        return Color::default();
     }
 
     let unit_dir = r.direction().unit_vector();

@@ -1,14 +1,23 @@
-use super::{traits::Hittable, HitRecord, Point3, Ray, Vec3};
+use super::{
+    traits::{Hittable, Material},
+    HitRecord, Point3, Ray, Vec3,
+};
+use std::rc::Rc;
 
-#[derive(Debug, PartialEq, Clone, Copy, Default)]
+#[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
+    mat: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Self {
-        Self { center, radius }
+    pub fn new(center: Point3, radius: f64, mat: Rc<dyn Material>) -> Self {
+        Self {
+            center,
+            radius,
+            mat,
+        }
     }
 }
 
@@ -36,7 +45,13 @@ impl Hittable for Sphere {
 
         // get point of inpact
         let p = r.at(root);
-        Some(HitRecord::new(p, r, (p - self.center) / self.radius, root))
+        Some(HitRecord::new(
+            p,
+            r,
+            (p - self.center) / self.radius,
+            self.mat.clone(),
+            root,
+        ))
     }
 }
 

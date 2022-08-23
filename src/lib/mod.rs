@@ -2,6 +2,7 @@ mod camera;
 mod color;
 mod hitrecord;
 pub mod hittables;
+pub mod materials;
 mod ray;
 pub mod utils;
 mod vec3;
