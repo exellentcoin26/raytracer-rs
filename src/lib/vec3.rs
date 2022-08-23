@@ -43,6 +43,32 @@ impl Vec3 {
         }
     }
 
+    // Returns a random point on a unit sphere using the `random_in_unit_sphere` method and turning
+    // it into a unit vector.
+    pub fn random_unit_vector() -> Self {
+        Self::random_in_unit_sphere().unit_vector()
+    }
+
+    pub fn random_in_hemisphere(normal: &Self) -> Self {
+        let in_unit_sphere = Self::random_in_unit_sphere();
+        return if in_unit_sphere.dot(*normal) > 0.0 {
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
+        };
+    }
+
+    /// Returns `true` if all axes are almost zero (smaller than some eps).
+    pub fn near_zero(&self) -> bool {
+        let eps = 1.0_f64.powi(-8);
+        self.0 < eps && self.1 < eps && self.2 < eps
+    }
+
+    /// Returns the vector reflected using the normal. The size of the vector is kept.
+    pub fn reflect(&self, normal: &Vec3) -> Self {
+        *self - 2.0 * self.dot(*normal) * *normal
+    }
+
     pub fn x(&self) -> f64 {
         self.0
     }

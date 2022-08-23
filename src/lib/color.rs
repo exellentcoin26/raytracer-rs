@@ -18,17 +18,17 @@ impl Color {
     }
 
     pub fn red(&self) -> f64 {
-        assert!(self.0 <= 1f64 && self.0 >= 0f64);
+        assert!((0f64..=1f64).contains(&self.0));
         self.0
     }
 
     pub fn green(&self) -> f64 {
-        assert!(self.1 <= 1f64 && self.1 >= 0f64);
+        assert!((0f64..=1f64).contains(&self.1));
         self.1
     }
 
     pub fn blue(&self) -> f64 {
-        assert!(self.2 <= 1f64 && self.2 >= 0f64);
+        assert!((0f64..=1f64).contains(&self.2));
         self.2
     }
 
@@ -40,11 +40,18 @@ impl Color {
 
     pub fn write_color(&self) -> String {
         assert!(self.valid());
+
+        // gamma correct before output
+        let gamma_inv = 1.0 / 2.0;
+        let r = self.0.powf(gamma_inv);
+        let g = self.1.powf(gamma_inv);
+        let b = self.2.powf(gamma_inv);
+
         format!(
             "{} {} {}",
-            (self.0 * 255f64).round() as u8,
-            (self.1 * 255f64).round() as u8,
-            (self.2 * 255f64).round() as u8
+            (r * 255.0).round() as u8,
+            (g * 255.0).round() as u8,
+            (b * 255.0).round() as u8
         )
     }
 }

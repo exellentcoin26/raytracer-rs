@@ -12,10 +12,10 @@ fn main() {
     //        Image
     // ===================
 
-    let aspect_ratio = 16_f64 / 9_f64;
-    let image_width = 2000_usize;
+    let aspect_ratio = 16.0 / 9.0;
+    let image_width = 400_usize;
     let image_height = (image_width as f64 / aspect_ratio).round() as usize;
-    let samples_per_pixel = 5_usize;
+    let samples_per_pixel = 100_usize;
     let max_ray_depth = 50_usize;
 
     // ===================
@@ -66,8 +66,7 @@ fn main() {
         }
     }
 
-    eprintln!();
-    eprintln!("Done");
+    eprintln!("\nDone");
 }
 
 fn ray_color<T: Hittable>(r: &Ray, world: &T, depth: usize) -> Color {
@@ -76,14 +75,26 @@ fn ray_color<T: Hittable>(r: &Ray, world: &T, depth: usize) -> Color {
         return Color::new(0.0, 0.0, 0.0);
     }
 
-    // spawn a single sphere for testing
-    if let Some(rec) = world.hit(r, 0.0, std::f64::INFINITY) {
-        let target = rec.get_inpact_point() + rec.normal() + Vec3::random_in_unit_sphere();
-        return 0.5 * ray_color(&Ray::new(rec.get_inpact_point(), target), world, depth - 1);
+    // fix the `shadow acne` problem by ignoring bounces that bounce from themselves
+    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
+        // true Lambertian diffuse reflection
+        let target = rec.get_inpact_point() + rec.normal() + Vec3::random_unit_vector();
+
+        /*
+        // hemespherical scattering
+        let target = rec.get_inpact_point() + Vec3::random_in_hemisphere(&rec.normal());
+        */
+
+        return 0.5
+            * ray_color(
+                &Ray::new(rec.get_inpact_point(), target - rec.get_inpact_point()),
+                world,
+                depth - 1,
+            );
     }
 
     let unit_dir = r.direction().unit_vector();
-    let t = 0.5_f64 * (1.0 + unit_dir.y());
+    let t = 0.5 * (unit_dir.y() + 1.0);
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
