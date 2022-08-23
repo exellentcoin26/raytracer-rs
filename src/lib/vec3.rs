@@ -51,17 +51,17 @@ impl Vec3 {
 
     pub fn random_in_hemisphere(normal: &Self) -> Self {
         let in_unit_sphere = Self::random_in_unit_sphere();
-        return if in_unit_sphere.dot(*normal) > 0.0 {
+        if in_unit_sphere.dot(*normal) > 0.0 {
             in_unit_sphere
         } else {
             -in_unit_sphere
-        };
+        }
     }
 
     /// Returns `true` if all axes are almost zero (smaller than some eps).
     pub fn near_zero(&self) -> bool {
-        let eps = 1.0_f64.powi(-8);
-        self.0 < eps && self.1 < eps && self.2 < eps
+        let eps = 1.0e-8;
+        self.0.abs() < eps && self.1.abs() < eps && self.2.abs() < eps
     }
 
     /// Returns the vector reflected using the normal. The size of the vector is kept.
