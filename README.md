@@ -10,4 +10,4 @@ cargo run --release > image.ppm
 
 Example image:
 
-![Image](./images/image.png "Ray tracing example")
+![Image](./images/high_res.png "Ray tracing example")
