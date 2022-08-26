@@ -29,9 +29,9 @@ fn main() {
     let mut world = HittableList::default();
 
     let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
-    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8)));
-    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2)));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
 
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, -100.5, -1.0),
@@ -39,17 +39,17 @@ fn main() {
         material_ground.clone(),
     )));
     world.add(Box::new(Sphere::new(
-        Point3::new(0.0, 0.0, -1.0),
+        Point3::new(0.0, 0.1, -1.0),
         0.5,
         material_center.clone(),
     )));
     world.add(Box::new(Sphere::new(
-        Point3::new(-1.0, 0.0, -1.0),
+        Point3::new(-1.2, 0.1, -1.0),
         0.5,
         material_left.clone(),
     )));
     world.add(Box::new(Sphere::new(
-        Point3::new(1.0, 0.0, -1.0),
+        Point3::new(1.2, 0.1, -1.0),
         0.5,
         material_right.clone(),
     )));
@@ -72,8 +72,8 @@ fn main() {
     for j in (0..image_height).rev() {
         // print progress to `stderr`
         // ascii escape sequence that rerenders said line
-        eprintln!("                             \x1B[1A"); // temporary fix for trailing 0
-        eprintln!("Scanlines remaining: {}\x1B[1A", j);
+        eprintln!("                                                 \x1B[1A"); // temporary fix for trailing
+        eprintln!("Scanline: {} / {}\x1B[1A", image_height - j, image_height);
 
         for i in 0..image_width {
             // use `Vec3` because the `Color` invariants cannot be guaranteed before rescaling

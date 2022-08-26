@@ -28,19 +28,25 @@ impl Material for Lambertian {
 }
 
 pub struct Metal {
+    /// Color of the material
     albedo: Color,
+    /// Radius of the circle used to randomize ray bounce
+    fuzz: f64,
 }
 
 impl Metal {
-    pub fn new(albedo: Color) -> Self {
-        Self { albedo }
+    pub fn new(albedo: Color, fuzz: f64) -> Self {
+        Self { albedo, fuzz }
     }
 }
 
 impl Material for Metal {
     fn scatter(&self, r_in: &Ray, hitrecord: &HitRecord) -> Option<(Color, Ray)> {
         let reflected = r_in.direction().unit_vector().reflect(&hitrecord.normal());
-        let scattered = Ray::new(hitrecord.get_inpact_point(), reflected);
+        let scattered = Ray::new(
+            hitrecord.get_inpact_point(),
+            reflected + self.fuzz * Vec3::random_in_unit_sphere(),
+        );
 
         if scattered.direction().dot(hitrecord.normal()) > 0.0 {
             return Some((self.albedo, scattered));
