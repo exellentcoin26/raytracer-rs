@@ -55,3 +55,45 @@ impl Material for Metal {
         None
     }
 }
+
+pub struct Dielectric {
+    /// Refraction index of the dielectric material
+    ref_index: f64,
+}
+
+impl Dielectric {
+    pub fn new(ref_index: f64) -> Self {
+        assert!(ref_index >= 1.0, "refraction index cannot be lower than 1");
+        Self { ref_index }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, r_in: &Ray, hitrecord: &HitRecord) -> Option<(Color, Ray)> {
+        // calculate eta_over_etap according to hitting a frontface
+        let ref_ratio = if hitrecord.hit_frontface() {
+            1.0 / self.ref_index
+        } else {
+            self.ref_index
+        };
+
+        let unit_dir = r_in.direction().unit_vector();
+
+        let cos_theta = (-unit_dir).dot(hitrecord.normal());
+        let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
+
+        // check whether to refract or reflect
+        let direction = if ref_ratio * sin_theta > 1.0 {
+            // reflect
+            unit_dir.reflect(&hitrecord.normal())
+        } else {
+            // refract
+            unit_dir.refract(&hitrecord.normal(), ref_ratio)
+        };
+
+        Some((
+            Color::new(1.0, 1.0, 1.0),
+            Ray::new(hitrecord.get_inpact_point(), direction),
+        ))
+    }
+}

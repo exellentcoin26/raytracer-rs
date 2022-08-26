@@ -3,7 +3,7 @@
 use crate::lib::{
     hittables::HittableList,
     hittables::Sphere,
-    materials::{Lambertian, Metal},
+    materials::{Dielectric, Lambertian, Metal},
     traits::Hittable,
     utils, Camera, Color, Point3, Ray, Vec3,
 };
@@ -29,7 +29,7 @@ fn main() {
     let mut world = HittableList::default();
 
     let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(Dielectric::new(1.0));
     let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
     let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
 
