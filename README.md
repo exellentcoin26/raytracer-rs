@@ -8,6 +8,8 @@ Generate image:
 cargo run --release > image.ppm
 ```
 
-Example image:
+Example images:
 
-![Image](./images/high_res.png "Ray tracing example")
+![Front view](./images/high_res.png " Front view ray tracing example")
+
+![Top down view](./images/top.png "Top down view ray tracing example")
