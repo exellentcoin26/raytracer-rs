@@ -1,4 +1,4 @@
-use super::{traits::Material, Color, HitRecord, Ray, Vec3};
+use super::{traits::Material, utils, Color, HitRecord, Ray, Vec3};
 
 pub struct Lambertian {
     albedo: Color,
@@ -66,6 +66,12 @@ impl Dielectric {
         assert!(ref_index >= 1.0, "refraction index cannot be lower than 1");
         Self { ref_index }
     }
+
+    /// Returns the ratio that should be reflected using the `Schlick's approximation` (<https://en.wikipedia.org/wiki/Schlick%27s_approximation>)
+    fn reflectance(cos: f64, ref_index: f64) -> f64 {
+        let r0 = ((1.0 - ref_index) / (1.0 + ref_index)).powi(2);
+        r0 + (1.0 - r0) * (1.0 - cos).powi(5)
+    }
 }
 
 impl Material for Dielectric {
@@ -83,7 +89,9 @@ impl Material for Dielectric {
         let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
 
         // check whether to refract or reflect
-        let direction = if ref_ratio * sin_theta > 1.0 {
+        let direction = if ref_ratio * sin_theta > 1.0
+            || Self::reflectance(cos_theta, ref_ratio) > utils::random_double()
+        {
             // reflect
             unit_dir.reflect(&hitrecord.normal())
         } else {
