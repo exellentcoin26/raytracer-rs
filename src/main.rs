@@ -16,10 +16,10 @@ fn main() {
     // ===================
 
     let aspect_ratio = 16.0 / 9.0;
-    let image_width = 400_usize;
+    let image_width = 2000_usize;
     let image_height = (image_width as f64 / aspect_ratio).round() as usize;
-    let samples_per_pixel = 100_usize;
-    let max_ray_depth = 50_usize;
+    let samples_per_pixel = 200_usize;
+    let max_ray_depth = 100_usize;
 
     // ===================
     //       World
@@ -29,9 +29,9 @@ fn main() {
 
     // materials
     let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(Dielectric::new(1.5));
-    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
-    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
+    let material_left = Rc::new(Dielectric::new(1.5));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.0));
 
     // objects
     world.add(Box::new(Sphere::new(
@@ -40,17 +40,22 @@ fn main() {
         material_ground.clone(),
     )));
     world.add(Box::new(Sphere::new(
-        Point3::new(0.0, 0.1, -1.0),
-        -0.5,
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
         material_center.clone(),
     )));
     world.add(Box::new(Sphere::new(
-        Point3::new(-1.2, 0.1, -1.0),
+        Point3::new(-1.0, 0.0, -1.0),
         0.5,
         material_left.clone(),
     )));
     world.add(Box::new(Sphere::new(
-        Point3::new(1.2, 0.1, -1.0),
+        Point3::new(-1.0, 0.0, -1.0),
+        -0.45,
+        material_left.clone(),
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(1.0, 0.0, -1.0),
         0.5,
         material_right.clone(),
     )));
@@ -59,7 +64,13 @@ fn main() {
     //       Camera
     // ===================
 
-    let cam = Camera::new(90.0, aspect_ratio);
+    let cam = Camera::new_positional(
+        Point3::new(-2.0, 2.0, 1.0),
+        Point3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.1, 0.0),
+        90.0,
+        aspect_ratio,
+    );
 
     // ===================
     //       Render

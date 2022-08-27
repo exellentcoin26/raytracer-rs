@@ -9,7 +9,8 @@ pub struct Camera {
 }
 
 impl Camera {
-    /// Returns a new instance of the `Camera` struct.
+    /// Returns a new instance of the `Camera` struct, with position and direction of the camera as
+    /// defaults.
     ///
     /// Arguments:
     ///
@@ -28,6 +29,43 @@ impl Camera {
         let vertical = Vec3::new(0.0, viewport_height, 0.0);
         let lower_left_corner =
             origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+
+        Self {
+            origin,
+            lower_left_corner,
+            horizontal,
+            vertical,
+        }
+    }
+
+    /// Returns a new instance of the `Camera` struct.
+    ///
+    /// Arguments:
+    ///
+    /// * `origin`: Origin of the camera.
+    /// * `lookat`: Point the camera is looking at.
+    /// * `vup`: Vector indication the up acces of the camera (used to specify roll).
+    /// * `vfov`: Vertical angle (in degrees) from the camera origin to the top and bottom of the view port.
+    /// * `aspect_ratio`: Ratio of width devided by height of the view port.
+    pub fn new_positional(
+        origin: Point3,
+        lookat: Point3,
+        vup: Vec3,
+        vfov: f64,
+        aspect_ratio: f64,
+    ) -> Self {
+        let theta = f64::to_radians(vfov);
+        let h = f64::tan(theta / 2.0);
+        let viewport_height = 2.0 * h;
+        let viewport_width = aspect_ratio * viewport_height;
+
+        let w = (origin - lookat).unit_vector();
+        let u = vup.cross(w).unit_vector();
+        let v = w.cross(u);
+
+        let horizontal = viewport_width * u;
+        let vertical = viewport_height * v;
+        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
 
         Self {
             origin,
