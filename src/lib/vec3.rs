@@ -43,18 +43,34 @@ impl Vec3 {
         }
     }
 
-    // Returns a random point on a unit sphere using the `random_in_unit_sphere` method and turning
-    // it into a unit vector.
+    /// Returns a random point on a unit sphere using the `random_in_unit_sphere` method and turning
+    /// it into a unit vector.
     pub fn random_unit_vector() -> Self {
         Self::random_in_unit_sphere().unit_vector()
     }
 
+    /// Returns a random point in the right half of a unit sphere.
     pub fn random_in_hemisphere(normal: &Self) -> Self {
         let in_unit_sphere = Self::random_in_unit_sphere();
         if in_unit_sphere.dot(*normal) > 0.0 {
             in_unit_sphere
         } else {
             -in_unit_sphere
+        }
+    }
+
+    /// Returns a random point in a unit circle, using a rejection method. Pick a point in a unit
+    /// square and check if this is within the unit circle, else retry.
+    pub fn random_in_unit_circle() -> Self {
+        loop {
+            let p = Vec3::new(
+                utils::random_double_range(-1.0..1.0),
+                utils::random_double_range(-1.0..1.0),
+                0.0,
+            );
+            if p.length_squared() < 1.0 {
+                break p;
+            }
         }
     }
 

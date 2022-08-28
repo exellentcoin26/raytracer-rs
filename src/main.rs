@@ -64,12 +64,20 @@ fn main() {
     //       Camera
     // ===================
 
-    let cam = Camera::new_positional(
-        Point3::new(-2.0, 2.0, 1.0),
-        Point3::new(0.0, 0.0, -1.0),
-        Vec3::new(0.0, 1.1, 0.0),
-        90.0,
+    let origin = Vec3::new(3.0, 3.0, 2.0);
+    let lookat = Vec3::new(0.0, 0.0, -1.0);
+    let vup = Vec3::new(0.0, 1.0, 0.0);
+    let dist_to_focus = (lookat - origin).length();
+    let aperture = 0.7;
+
+    let cam = Camera::new_focusable(
+        origin,
+        lookat,
+        vup,
+        20.0,
         aspect_ratio,
+        aperture,
+        dist_to_focus,
     );
 
     // ===================
